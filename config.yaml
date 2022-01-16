@@ -1,0 +1,83 @@
+#configuration for run
+configuration:
+  paths:
+    #raw json file as downloaded, could be any address for db as well
+    data_directory: data/
+    raw_file_path: data/raw_data/ltnn.json
+    dataframe_path: data/deliveries.csv
+    ml_input_path: data/file_for_training.csv
+    processed_inference: data/file_for_inference.csv
+    model_directory: model/
+    lr_path: linear_regression.pkl
+    rr_path: ridge_regression.pkl
+    lar_path: lasso_regression.pkl
+    dt_path: decision_trees_regression.pkl
+    rf_path: random_forests_regression.pkl
+    best_model_path: best_model.pkl
+
+  thresholds:
+    dropoff_distance: 1000
+    numeric_variance_threshold: 0.001
+    categorical_threshold: 0.05
+
+
+
+  data-ingestion:
+    read_raw: False
+    preprocess: True
+    auto_select_features: True
+    use_variance_for_categories: True
+
+
+  ml:
+    training_mode: True
+    inference_mode: False
+    add_validation_set: False
+    test_set_size: 0.2
+    numerical_columns: ['order_value', 'order_items_count']
+    categorical_columns: ['has_instruction', 'has_phone_number', 'has_call_instruction', 'has_leave_instruction',
+                          'has_lift_instruction', 'has_lobby_instruction', 'has_gate_instruction',
+                          'has_knock_instruction', 'has_bell_instruction', 'hour']
+    target_column: ['logistics_dropoff_distance']
+    columns_to_drop: ['index', 'delivery_geohash_precision8','created_timestamp_local', 'delivery_postal_code',
+                      'order_id', 'customer_id']
+
+    columns_to_keep: ['order_value', 'order_items_count', 'hour', 'is_w21xz', 'is_w23b7',
+                     'has_instruction', 'has_phone_number', 'has_call_instruction',
+                     'has_leave_instruction', 'has_lift_instruction',
+                     'has_lobby_instruction', 'has_gate_instruction',
+                     'has_knock_instruction', 'has_bell_instruction']
+
+
+    models:
+
+      rr_params:
+        alpha: 0.1
+        max_iter: 5000
+        solver: 'sparse_cg'
+
+      lar_params:
+        selection: "random"
+        warm_start: True
+        positive: True
+
+      dt_params:
+        min_samples_split: 10000
+        criterion: absolute_error
+        max_depth: 20
+
+      rf_params:
+        n_estimators: 500
+        criterion: "absolute_error"
+        min_samples_split: 1000
+        n_jobs: 16
+
+      svl_params:
+        kernel: "rbf"
+        max_iter: 1000
+
+
+
+
+
+
