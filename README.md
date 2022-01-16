@@ -31,5 +31,5 @@ pip3 install -r requirements.txt
 Paths and variables can be set inside config.yaml  
 Steps to execute can be modified inside the config.yaml file  
 
-Execute the code using
+The code can be executed using:  
 python3 controller.py  
