@@ -32,7 +32,11 @@ def main(config):
         trainer_obj.verify_columns()
         trainer_obj.split(config['ml']['add_validation_set'])
         trainer_obj.pipelinecreate()
-        trainer_obj.
+        trainer_obj.ridge_model()
+        trainer_obj.train()
+        trainer_obj.save_model(config['paths']['rr_path'])
+        trainer_obj.test()
+        trainer_obj.publish_results()
 
 
 

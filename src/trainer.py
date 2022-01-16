@@ -89,8 +89,8 @@ class MLTrainer:
         self.pipe = Pipeline(steps=[('preprocessor', preprocessor),])
 
 
-    def trainer(self):
-        self.pipe.fit(self.X_train, self.y_train)
+    def train(self):
+        self.model = self.pipe.fit(self.X_train, self.y_train)
 
     def publish_results(self):
         rmse = mean_squared_error(self.y_pred, self.y_test, squared=False)
@@ -100,4 +100,7 @@ class MLTrainer:
         return None
 
     def test(self, model):
-        self.y_pred = self.pipe.predict(self.X_test)
+        self.y_pred = self.model.predict(self.X_test)
+
+    def save_model(self, path):
+        joblib.dump(self.model, path)

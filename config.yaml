@@ -8,11 +8,11 @@ configuration:
     ml_input_path: data/file_for_training.csv
     processed_inference: data/file_for_inference.csv
     model_directory: model/
-    lr_path: linear_regression.pkl
-    rr_path: ridge_regression.pkl
-    lar_path: lasso_regression.pkl
-    dt_path: decision_trees_regression.pkl
-    rf_path: random_forests_regression.pkl
+    lr_path: lr_model.joblib
+    rr_path: ridge_model.joblib
+    lar_path: lar_model.joblib
+    dt_path: dt_model.joblib
+    rf_path: rf_model.joblib
     best_model_path: best_model.pkl
 
   thresholds:
