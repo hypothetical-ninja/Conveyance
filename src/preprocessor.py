@@ -10,8 +10,11 @@ from sklearn.preprocessing import normalize
 #arbitrary dropoff threshold decided after analysing the dropoff distances. 99th percentile value is 687m
 
 class Preprocess:
-    def __init__(self, dataframe_path, config):
-        self.df = pd.read_csv(dataframe_path)
+    def __init__(self, dataframe_path, config, read_csv = True):
+        if not read_csv:
+            self.df = dataframe_path
+        else:
+            self.df = pd.read_csv(dataframe_path)
         self.config = config
 
 
@@ -31,11 +34,11 @@ class Preprocess:
     numeric columns: if not sufficient variance, drop
     categorical columns: if distinct values is greater than 10% of dataset or 100k (whichever is greater) then drop'''
     def auto_select_features(self, use_variance_for_cat=True):
-        num_features= self.df.select_dtypes(include=['int64','float64']).drop(self.config.ml.target_column, axis=1).columns
-        cat_features = self.df.select_dtypes(include=['object','bool']).drop([self.config.ml.target_column], axis=1).columns
+        num_features= list(self.df.select_dtypes(include=['int64','float64']).drop(self.config['ml']['target_column'], axis=1).columns)
+        cat_features = list(self.df.select_dtypes(include=['object','bool']).columns)
 
         if use_variance_for_cat:
-            num_features += cat_features
+            num_features.extend(cat_features)
         #use variance to determine
         selected_features = []
         for feature in num_features:
@@ -81,6 +84,7 @@ class Preprocess:
     def add_features(self):
         self.df['hour'] = self.df['created_timestamp_local'].apply(self.extract_hour)
         self.df['delivery_geohash_precision5'] = self.df['delivery_geohash_precision8'].apply(lambda z: z[:5])
+        self.create_geohash_features()
 
     def write_df(self, output_path):
         self.df.to_csv(output_path, index=False)

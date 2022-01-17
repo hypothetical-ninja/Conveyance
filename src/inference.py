@@ -1,16 +1,10 @@
 import pandas as pd
-import numpy as np
-import re
-import os
-from sklearn.model_selection import train_test_split
-from sklearn.feature_selection import VarianceThreshold
-from sklearn.pipeline import make_pipeline, Pipeline
-from sklearn.preprocessing import StandardScaler, RobustScaler
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn import svm
 import joblib
 import preprocessor
+import yaml
 
+import warnings
+warnings.filterwarnings('ignore')
 
 
 class MLInference:
@@ -27,20 +21,40 @@ class MLInference:
             df = df[cols_to_keep]
         except KeyError as e:
             print(e)
-            return None
+            df = None
+        return df
 
     def preprocess_data(self):
-        prep = preprocessor.Preprocess(self.config['paths']['dataframe_path'], self.config['configuration'])
+        prep = preprocessor.Preprocess(self.test_data, self.config, False)
         prep.remove_outliers(self.config['ml']['target_column'])
-        if self.config['data-ingestion']['preprocess']:
-            prep.auto_select_features(use_variance_for_cat=self.config['data-ingestion']['use_variance_for_category'])
+        if self.config['data-ingestion']['auto_select_features']:
+            prep.auto_select_features(use_variance_for_cat=self.config['data-ingestion']['use_variance_for_categories'])
 
         prep.add_features()
-        prep.write_df(self.config['paths']['processed_inference'])
+        prep.write_df('../' + self.config['paths']['processed_inference'])
 
     def predict(self):
-        df = pd.read_csv(self.config['paths']['processed_inference'])
-        if self.verify_columns(df) == None:
+        df = pd.read_csv('../' + self.config['paths']['processed_inference'])
+        df = self.verify_columns(df)
+        if df is None:
+            print("columns mismatch.")
             return None
+        y_pred = self.model.predict(df)
+        df['predicted_distance'] = y_pred
+        return df
+
+
+
+if __name__ == '__main__':
+    with open('../config.yaml') as file:
+        config = yaml.safe_load(file)['configuration']
+    model_path = '../model/' + config['ml']['inference_model']
+    test_data_path = config['paths']['test_data_path']
+
+    tester = MLInference(model_path, test_data_path, config)
+    tester.preprocess_data()
+    outcome = tester.predict()
+    outcome.to_csv(config['paths']['test_output_path'], index=False)
+    print("Completed..!")
 
 

@@ -1,10 +1,11 @@
-import pandas as pd
-import re
 import os
 import yaml
 import src.preprocessor as preprocessor
 import src.trainer as trainer
 import src.data_converter as data_converter
+
+import warnings
+warnings.filterwarnings('ignore')
 
 module = os.path.basename(__file__)
 home_dir = os.path.expanduser("~")
@@ -51,12 +52,6 @@ def main(config):
 if __name__=="__main__":
     with open('config.yaml') as file:
         config = yaml.safe_load(file)
-    print(config)
-    # main(config)
-    print("module")
-    print(module)
-    print("dir")
-    print(package_dir)
-    print(config['configuration']['thresholds']['dropoff_distance'])
+    main(config)
 
 
