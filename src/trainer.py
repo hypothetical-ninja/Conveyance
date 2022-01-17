@@ -24,9 +24,9 @@ class MLTrainer:
 
     def shuffle_df(self, n=0.3, subset=False):
         if subset:
-            self.all_data.sample(fraction=n, inplace=True)
+            self.all_data = self.all_data.sample(frac=n)
         else:
-            self.all_data.sample(fraction=1, inplace=True)
+            self.all_data = self.all_data.sample(frac=1)
 
 
     def verify_columns(self):
@@ -38,8 +38,11 @@ class MLTrainer:
 
     def split(self, validation=False):
         y = self.all_data[self.config['ml']['target_column']]
-        X = self.all_data.drop([self.config['ml']['target_column']], axis=1)
-        test_size = self.config['ml']['test_size']
+        if self.config['ml']['target_column'][0] in self.all_data.columns:
+            X = self.all_data.drop(self.config['ml']['target_column'], axis=1)
+        else:
+            X = self.all_data
+        test_size = self.config['ml']['test_set_size']
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, y, test_size=test_size, random_state=19)
         if validation:
             self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(self.X_train, self.y_train,
@@ -64,20 +67,24 @@ class MLTrainer:
         dt_params = self.config['ml']['models']['dt_params']
         self.clf = tree.DecisionTreeRegressor(min_samples_split=dt_params["min_samples_split"],
                                               criterion=dt_params["criterion"], max_depth=dt_params["max_depth"])
-        self.pipe = Pipeline([("extraction_pipe", self.pipe), ("decision_tree", self.clf)])
+        self.pipe = Pipeline([("extraction_pipe", self.pipe), ("decision_trees", self.clf)])
 
 
     def rf_model(self):
         rf_params = self.config['ml']['models']['rf_params']
+        self.clf = RandomForestRegressor(n_estimators=rf_params['n_estimators'],criterion=rf_params['criterion'],
+                                         min_samples_leaf=rf_params['min_samples_leaf'],
+                                         min_samples_split=rf_params['min_samples_split'], n_jobs=rf_params['n_jobs'])
 
+        self.pipe = Pipeline([("extraction_pipe", self.pipe), ("random_forests", self.clf)])
 
     def svl(self):
         svl_params = self.config['ml']['models']['svl_params']
-        self.cls = svm.SVR(kernel=svl_params["kernel"], max_iter=svl_params["max_iter"])
-        self.pipe = Pipeline([("extraction_pipe", self.pipe), ("svm", self.cls)])
+        self.clf = svm.SVR(kernel=svl_params["kernel"], max_iter=svl_params["max_iter"])
+        self.pipe = Pipeline([("extraction_pipe", self.pipe), ("svm", self.clf)])
 
 
-    def pipelinecreate(self, classifier):
+    def pipelinecreate(self):
         oe = OneHotEncoder()
         numeric_transformer = Pipeline(steps=[
             ('scaler', RobustScaler())])
@@ -93,13 +100,14 @@ class MLTrainer:
         self.model = self.pipe.fit(self.X_train, self.y_train)
 
     def publish_results(self):
-        rmse = mean_squared_error(self.y_pred, self.y_test, squared=False)
-        mae = mean_absolute_error(self.y_pred,self.y_test)
-        results = pd.DataFrame({'MAE':mae, 'RMSE':rmse, 'Model':self.pipe[-1]})
+        y_test_array = np.array(self.y_test['logistics_dropoff_distance'].tolist())
+        rmse = mean_squared_error(self.y_pred, y_test_array, squared=False)
+        mae = mean_absolute_error(self.y_pred,y_test_array)
+        results = pd.DataFrame({'MAE':mae, 'RMSE':rmse, 'Model':self.model}, index=[0])
         results.to_csv('../results.csv', index=False)
         return None
 
-    def test(self, model):
+    def test(self):
         self.y_pred = self.model.predict(self.X_test)
 
     def save_model(self, path):

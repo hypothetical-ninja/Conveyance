@@ -19,39 +19,35 @@ def main(config):
         df.to_csv(package_dir + config['paths']['dataframe_path'], index=False)
 
     if config['data-ingestion']['preprocess']:
-        prep = preprocessor.Preprocess(config['paths']['dataframe_path'], config['configuration'])
+        prep = preprocessor.Preprocess(package_dir + '/' + config['paths']['dataframe_path'], config)
         prep.remove_outliers(config['ml']['target_column'])
-        if config['data-ingestion']['preprocess']:
-            prep.auto_select_features(use_variance_for_cat=config['data-ingestion']['use_variance_for_category'])
+        if config['data-ingestion']['auto_select_features']:
+            prep.auto_select_features(use_variance_for_cat=config['data-ingestion']['use_variance_for_categories'])
 
         prep.add_features()
-        prep.write_df(config['paths']['ml_input_path'])
+        prep.write_df(package_dir + '/' + config['paths']['ml_input_path'])
 
     if config['ml']['training_mode']:
-        trainer_obj = trainer.MLTrainer(config['paths']['ml_input_path'], config['configuration'])
+        trainer_obj = trainer.MLTrainer(package_dir + '/' + config['paths']['ml_input_path'], config)
         trainer_obj.shuffle_df()
         trainer_obj.verify_columns()
         trainer_obj.split(config['ml']['add_validation_set'])
         trainer_obj.pipelinecreate()
         trainer_obj.ridge_model()
+        print("Fitting the model..")
         trainer_obj.train()
-        trainer_obj.save_model(config['paths']['rr_path'])
+        print("Saving the model..")
+        trainer_obj.save_model(package_dir + '/' + config['paths']['model_directory'] + config['paths']['rr_path'])
+        print("Saved..")
         trainer_obj.test()
+        print("Test complete..")
         trainer_obj.publish_results()
 
 
 
-
-
-
-
-
-
-
-
 if __name__=="__main__":
-    with open('config.yaml') as file:
-        config = yaml.safe_load(file)
+    with open(package_dir+'/config.yaml') as file:
+        config = yaml.safe_load(file)['configuration']
     main(config)
 
 

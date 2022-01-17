@@ -70,10 +70,12 @@ configuration:
         max_depth: 20
 
       rf_params:
-        n_estimators: 500
+        n_estimators: 16
         criterion: "absolute_error"
         min_samples_split: 1000
+        min_samples_leaf: 10
         n_jobs: 16
+
 
       svl_params:
         kernel: "rbf"
