@@ -2,9 +2,11 @@ import pandas as pd
 import joblib
 import preprocessor
 import yaml
-
+import os
 import warnings
 warnings.filterwarnings('ignore')
+
+package_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 class MLInference:
@@ -31,10 +33,10 @@ class MLInference:
             prep.auto_select_features(use_variance_for_cat=self.config['data-ingestion']['use_variance_for_categories'])
 
         prep.add_features()
-        prep.write_df('../' + self.config['paths']['processed_inference'])
+        prep.write_df(package_dir + '/../' + self.config['paths']['processed_inference'])
 
     def predict(self):
-        df = pd.read_csv('../' + self.config['paths']['processed_inference'])
+        df = pd.read_csv(package_dir + '/../' + self.config['paths']['processed_inference'])
         df = self.verify_columns(df)
         if df is None:
             print("columns mismatch.")
@@ -46,9 +48,9 @@ class MLInference:
 
 
 if __name__ == '__main__':
-    with open('../config.yaml') as file:
+    with open(package_dir + '/../config.yaml') as file:
         config = yaml.safe_load(file)['configuration']
-    model_path = '../model/' + config['ml']['inference_model']
+    model_path = package_dir + '/../model/' + config['ml']['inference_model']
     test_data_path = config['paths']['test_data_path']
 
     tester = MLInference(model_path, test_data_path, config)
