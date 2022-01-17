@@ -37,4 +37,4 @@ python3 controller.py
 
 For inference mode:  
 python3 src/inference.py  
-Please ensure to modify the config.yaml to use models accordingly.
+Please ensure to modify the config.yaml to use models accordingly on test data.
